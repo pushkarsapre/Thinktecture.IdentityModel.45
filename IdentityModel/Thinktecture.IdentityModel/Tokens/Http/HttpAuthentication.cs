@@ -13,6 +13,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel.Security.Tokens;
 
@@ -147,6 +148,12 @@ namespace Thinktecture.IdentityModel.Tokens.Http
                                 AllowedAudience = Configuration.SessionToken.Audience,
                                 SigningToken = new BinarySecretSecurityToken(Configuration.SessionToken.SigningKey),
                             };
+
+                            // Create provider to ensure that CrptoHelper.GetIdentityFromConfig has
+                            // loaded and avoid race condition see https://connect.microsoft.com/VisualStudio/feedback/details/1477048/system-identitymodel-cryptohelper-getidentityfromconfig-has-race-condition-issue-that-results-in-miseading-error-message
+                            RSACryptoServiceProvider rsaProvider = new RSACryptoServiceProvider();
+                            RsaSecurityKey rsaKey = new RsaSecurityKey(rsaProvider);
+                            rsaKey.IsSupportedAlgorithm(token.SignatureAlgorithm);
 
                             var handler = new JwtSecurityTokenHandler();
                             return handler.ValidateToken(token, validationParameters);
