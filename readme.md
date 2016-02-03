@@ -2,7 +2,7 @@
 
 Helper library for identity & access control in .NET 4.5 and MVC4/Web API.
 
-Important: If you are looking for versions build against MVC5/Web API v2 - use (https://github.com/identitymodel/Thinktecture.IdentityModel)
+Important: This is really old and we don't maintain it anymore. If you are looking for versions that build against MVC5/Web API v2 - use (https://github.com/identitymodel/Thinktecture.IdentityModel)
 
 ## Features ##
 
