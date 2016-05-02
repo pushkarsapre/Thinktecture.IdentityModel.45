@@ -136,6 +136,16 @@ namespace Thinktecture.IdentityModel.Tokens.Http
             return (handler != null);
         }
 
+        public bool TryGetCookieMapping(string cookieName, out SecurityTokenHandlerCollection handler)
+        {
+            handler = (from m in Mappings
+                       where m.Options.RequestType == HttpRequestType.Cookie
+                              && m.Options.Name == cookieName
+                       select m.TokenHandler).SingleOrDefault();
+
+            return (handler != null);
+        }
+
         public bool TryGetClientCertificateMapping(out SecurityTokenHandlerCollection handler)
         {
             handler = (from m in Mappings

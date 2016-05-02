@@ -97,6 +97,21 @@ namespace Thinktecture.IdentityModel.Tokens.Http
                 }
             }
 
+            // check for credentials on the cookie
+            if (Configuration.HasCookieMapping)
+            {
+                if (request != null && request.Headers.GetCookies() != null)
+                {
+                    var principal = AuthenticateCookies(request.Headers.GetCookies().ToList());
+
+                    if (principal.Identity.IsAuthenticated)
+                    {
+                        Tracing.Information("Client authenticated using cookie mapping");
+                        return Transform(resourceName, principal);
+                    }
+                }
+            }
+
             // check for client certificate
             if (Configuration.HasClientCertificateMapping)
             {
@@ -227,6 +242,25 @@ namespace Thinktecture.IdentityModel.Tokens.Http
             return Principal.Anonymous;
         }
 
+        public virtual ClaimsPrincipal AuthenticateCookies(List<CookieHeaderValue> cookiesHeader)
+        {
+            SecurityTokenHandlerCollection handlers;
+            if (cookiesHeader != null)
+            {
+                foreach (CookieHeaderValue header in cookiesHeader)
+                {
+                    foreach (CookieState cookie in header.Cookies)
+                    {
+                        if (Configuration.TryGetCookieMapping(cookie.Name, out handlers))
+                        {
+                            return InvokeHandler(handlers, cookie.Value);
+                        }
+                    }
+                }
+            }
+            return Principal.Anonymous;
+        }
+
         public virtual ClaimsPrincipal AuthenticateQueryStrings(Uri uri)
         {
             return AuthenticateQueryStrings(uri.ParseQueryString());
@@ -292,10 +326,10 @@ namespace Thinktecture.IdentityModel.Tokens.Http
 
         private IEnumerable<Claim> FilterInternalClaims(ClaimsPrincipal principal)
         {
-            return principal.FindAll(c => 
-                c.Type != "exp" && 
-                c.Type != "nbf" && 
-                c.Type != "iss" && 
+            return principal.FindAll(c =>
+                c.Type != "exp" &&
+                c.Type != "nbf" &&
+                c.Type != "iss" &&
                 c.Type != "aud");
         }
 
